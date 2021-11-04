@@ -13,13 +13,9 @@ pragma solidity ^0.7.6;
 // A modification of OpenZeppelin ERC20
 // Original can be found here: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
 
-// Very slow erc20 implementation. Limits release of the funds with emission rate in _beforeTokenTransfer().
+// erc20 modification. Limits release of the funds with emission rate in _beforeTokenTransfer().
 // Even if there will be a vulnerability in upgradeable contracts defined in _beforeTokenTransfer(), it won't be devastating.
 // Developers can't simply rug.
-
-interface I{
-	function genesisBlock() external view returns(uint);
-}
 
 contract eERC {
 	event Transfer(address indexed from, address indexed to, uint value);
@@ -33,7 +29,8 @@ contract eERC {
 	string private _symbol;
 	bool private _init;
     uint public withdrawn;
-    uint public epochBlock;
+//    uint public epochBlock;
+    address public pool;
     
 	function init() public {
 	    require(_init == false && msg.sender == 0x5C8403A2617aca5C86946E32E14148776E37f72A);
@@ -46,9 +43,10 @@ contract eERC {
 		_balances[0x5C8403A2617aca5C86946E32E14148776E37f72A] = 3e24;
 	}
 	
-	function genesis(uint block) public {
+	function genesis(uint b, address p) public {
 		require(msg.sender == 0xed1e639f1a6e2D2FFAFA03ef8C03fFC21708CdC3);
-		epochBlock = block;
+	//	epochBlock = b;
+		pool = p;
 	}
 
 	function name() public view returns (string memory) {
@@ -108,10 +106,11 @@ contract eERC {
 		return true;
 	}
 
+// burns some tokens in the pool on liquidity unstake
 	function burn(uint amount) public {
 		require(msg.sender == 0x844D4992375368Ce4Bd03D19307258216D0dd147 &&_balances[pool]>=amount); //staking
 		_balances[pool] -= amount;
-		_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A]+=amount;
+		_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A]+=amount;//treasury
 	}
 
 	function _transfer(address sender, address recipient, uint amount) internal {
@@ -122,7 +121,7 @@ contract eERC {
 		if(recipient!=0x0FaCF0D846892a10b1aea9Ee000d7700992B64f8&&recipient!=0xed1e639f1a6e2D2FFAFA03ef8C03fFC21708CdC3){ //staking,founding
 			uint treasuryShare = amount/100;
 			amount -= treasuryShare;
-			_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A] += treasuryShare;//treasury fee on transfer
+			_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A] += treasuryShare;//treasury fee on transfer, makes cheapest token to trade not as cheap though. still useful, makes it very unlikely that treasury ever runs out of tokens
 		}
 		_balances[recipient] += amount;
 		emit Transfer(sender, recipient, amount);
@@ -152,21 +151,23 @@ contract eERC {
 		emit BulkTransfer(msg.sender, recipients, amounts);
 		return true;
 	}
-
-	function _beforeTokenTransfer(address from, uint amount) internal view {//emission safety check, treasury can't dump more than allowed
-		if(from == 0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A) {//from treasury
-			require(epochBlock != 0);
-			uint w = withdrawn;
-			uint max = (block.number - epochBlock)*31e15;
-			require(max>=w+amount);
-			uint allowed = max - w;
-			require(_balances[treasury] >= amount);
-			if (withdrawn>2e24){//this can be more complex and balanced in future upgrades, can for example depend on the token price. will take 4 years at least though
-				withdrawn = 0;
-				epochBlock = block.number-5e5;
-			} else {
-				withdrawn+=amount;
-			}
-		}
+	//emission safety check, treasury can't dump more than allowed. but with limits all over treasury might not be required anymore
+	//and with fee on transfer can't be useful without modifying the state, so again becomes expensive
+	//even on ftm it can easily become a substantial amount of fees to pay the nodes, so better remove it and make sure that other safety checks are enough
+	function _beforeTokenTransfer(address from, uint amount) internal {
+//		if(from == 0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A) {//from treasury
+//			require(epochBlock != 0);
+//			uint w = withdrawn;
+//			uint max = (block.number - epochBlock)*31e15;
+//			require(max>=w+amount);
+//			uint allowed = max - w;
+//			require(_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A] >= amount);
+//			if (withdrawn>2e24){//this can be more complex and balanced in future upgrades, can for example depend on the token price. will take 4 years at least though
+//				withdrawn = 0;
+//				epochBlock = block.number-5e5;
+//			} else {
+//				withdrawn+=amount;
+//			}
+//		}
 	}
 }
