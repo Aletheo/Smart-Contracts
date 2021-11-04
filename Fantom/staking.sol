@@ -8,6 +8,7 @@ interface I {
 	function totalSupply() external view returns (uint);
 	function getRewards(address a,uint rewToClaim) external;
 	function deposits(address a) external view returns(uint);
+	function burn(uint) external;
 }
 
 contract StakingContract {
@@ -90,16 +91,20 @@ contract StakingContract {
 		if (status == true) {
 			length = _founderEpochs.length;
 			epoch = _founderEpochs[length-1];
-			I(_letToken).burn(toSubtract/10);
 		} else{
 			length = _epochs.length;
 			epoch = _epochs[length-1];
-			I(_letToken).burn(toSubtract);
 		}
 		(uint80 eBlock,uint96 eAmount,) = _extractEpoch(epoch);
 		eAmount -= uint96(toSubtract);
 		require(eAmount>=toSubtract);
 		_storeEpoch(eBlock,eAmount,status,length);
+		{
+		    address t = _letToken;
+		    address tkn = _tokenFTMLP;
+		    toSubtract = I(t).balanceOf(tkn)*amount/I(tkn).totalSupply();
+		    I(t).burn(toSubtract/10);
+		}
 		I(_tokenFTMLP).transfer(address(msg.sender), amount*9/10);
 	}
 
