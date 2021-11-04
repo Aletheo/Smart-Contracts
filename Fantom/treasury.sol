@@ -1,8 +1,3 @@
-/**
- *Submitted for verification at FtmScan.com on 2021-10-28
-*/
-
-//CHANGE ADDRESSES
 //changes are very conservative and repetitive. security over efficiency until there will be time to perfect the contract to the level of staking contract
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
