@@ -76,7 +76,7 @@ contract FoundingEvent {
 		I(router).addLiquidityETH{value: address(this).balance}(letToken,amount,0,0,staking,2**256-1);
 		I(staking).genesis(balance, tknFTMLP,block.number);
 		I(letToken).transfer(treasury,I(letToken).balanceOf(address(this)));// burn excess to treasury, in case if hardcap is not reached by the end date is
-		I(letToken).genesis(block.number);
+		I(letToken).genesis(block.number,tknFTMLP);
 		I(treasury).genesis(block.number);
 		delete _lgeOngoing;
 	}
