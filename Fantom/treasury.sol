@@ -10,34 +10,31 @@ interface I{
 
 contract Treasury {
 	address private _governance;
+
 	struct Beneficiary {
 		uint128 amount;
 		uint128 emission;
 		uint lastClaim;
 	}
+
 	mapping (address => Beneficiary) public bens;
 	struct Poster {
 		uint128 amount;
 		uint128 lastClaim;
 	}
+
 	mapping (address => Poster) public posters;
 	struct AirdropRecepient {
 		uint128 amount;
 		uint128 lastClaim;
 	}
+
 	mapping (address => AirdropRecepient) public airdrops;
-	struct Refund {
-		uint128 amount;
-		uint128 lastClaim;
-		uint emission;
-	}
-	mapping (address => Refund) public refunds;
 	address private _oracle;
 	address private _letToken;
 	address private _founding;
 	uint public totalPosters;
 	uint public totalAirdrops;
-	uint public totalRefundsEmission;
 	uint public totBenEmission;
 	uint public epochBlock;
 
@@ -48,51 +45,51 @@ contract Treasury {
 		_founding =0xC15F932b03e0BFdaFd13d419BeFE5450b532e692;
 		//added without arrays, so the code is representative
 //Fantom
-		addRefund(0x76b60dCf71dA2294f8aA034432D925D1eED8cf68,5);
-		addRefund(0x6718EB204A15601BCE38b6695816D6206F8207AB,52);
-		addRefund(0x4B254c5F0014487fB6DB637835a123667cc6e08b,500);
-		addRefund(0x679B4172E1698579d562D1d8b4774968305b80b2,100);
-		addRefund(0xa25e3A5F8268538c3726CcEc9624056973b71d2F,500);
-		addRefund(0xEC2e79b2df2fF15Bf74dC6FD2dbA4eEd348Aa677,40);
-		addRefund(0x3a2Fe85E391D75ed31133A6b91D1AA1a7BF47D79,10);
-		addRefund(0x62581E22530F7D4Af5bbAAA62e5364d8B44F9A84,10);
-		addRefund(0xe5936d9De1527832d39d05F9F9f7EC88cc2755Ed,101);
-		addRefund(0xC0D35857e87F5ADe6055714706fb4dFD96DE087E,1);
-		addRefund(0x2D8e1Ef6B2b5F6Bae1D47aa61c3BE3Bf413A34C3,20);
-		addRefund(0x5C8403A2617aca5C86946E32E14148776E37f72A,1);
-		addRefund(0x1f3236F64Cb6878F164e3A281c2a9393e19A6D00,50);
-		addRefund(0x08539431F4d59a02D0347588F6fBdb7d69aAd2c3,1000);
-		addRefund(0xd517970724351D1c3A676D45B79634DDe2a2899b,50);
-		addRefund(0x9253ced0fdFb7BD4E505CD5E2a5C8712F3251d69,10);
-		addRefund(0xC04d40CCD06f85Efd7A760a85D7aA42355DB00D5,10);
-		addRefund(0xB7DC6A421bE69A53F1A6db51808bD3080e54aDfB,250);
-		addRefund(0x79be773e584954205b6533708c2f33ae5827b790,10);
-		addRefund(0xc6C8AeCb1d9cA59A09d691cDa8539992655dbfB3,600);
-		addRefund(0x6e32a45cce1e03Fc13D49E73DdC329dB99A1364a,1);
-		addRefund(0x9b090761223bF884AE902C66C0373e5920F567Aa,50);
-		addRefund(0x57a99f34721418E3c4A054E0F7356a1bC712b8e9,10);
-		addRefund(0x1e62A12D4981e428D3F4F28DF261fdCB2CE743Da,1000);
-		addRefund(0x1F2bC22E55fBD7853A49421C8e038d1f2025dC3c,500);
-		addRefund(0xffC4C7896526105338742f74f91667D94199C1E8,2);
-		addRefund(0x185269516c6a37af244B94bE962C9B33A3Cbd52B,40);
-		addRefund(0x0A5aec13f9cF73d848f6B03E4F7Ee6D888cD924e,1000);
-		addRefund(0x61edd22e98c32ccf986CBf406297423D95bD3cA3,250);
-//Ethereum ratio 1 ether = 1000 fantom
-		addRefund(0xbCB28129b40105b1B38eB1F4e759c358Be892D19,238);
-		addRefund(0x298016db488516E9FdB860E12424366f47E3Df2a,10);
-		addRefund(0x119840f12E9D21F1c37097e3f65d3Cc1AC084646,3000);
-		addRefund(0x3F73Ea32dcD34a0B5CDc16EAF9b95bf3b3C8F44a,140);
-		addRefund(0x56228eCE4Ed037B739F89e157AF5393F27C7217a,250);
-		addRefund(0x9E0dffC8134BC73cE08Cce55259774674B701C2b,50);
-		addRefund(0xb44FC936577C8929541C52C76e1d642E7B393EA4,263);
-		addRefund(0xAb769309EbCEEDa984E666ab727b36211bA02A8a,20);
-		addRefund(0x19c41f73416d68590e953868505F4bb8239Cefb5,85);
-		addRefund(0xBf26925f736E90E1715ce4E04cD9c289dD1bc002,1000);
-		addRefund(0x1Fd92A677e862fCcE9CFeF75ABAD79DF18B88d51,100);
-		addRefund(0xB6d3aa0B6D3b47BE1736F277eCBc7e03A6fB91d7,10);
-		addRefund(0xD5e4a02aF646B5466Ab9984d49890ED30d4d47Eb,20);
-		addRefund(0x0e979995e1dFB7546904E087c712DA6dd117F066,100);
-		addRefund(0x3b7c23B91eAad19aF4f085C99E36bBaaf8E66741,40);
+//		addRefund(0x76b60dCf71dA2294f8aA034432D925D1eED8cf68,5);//refunds were merged with airdrops, specific amount will be set after starting price is known
+//		addRefund(0x6718EB204A15601BCE38b6695816D6206F8207AB,52);
+//		addRefund(0x4B254c5F0014487fB6DB637835a123667cc6e08b,500);
+//		addRefund(0x679B4172E1698579d562D1d8b4774968305b80b2,100);
+//		addRefund(0xa25e3A5F8268538c3726CcEc9624056973b71d2F,500);
+//		addRefund(0xEC2e79b2df2fF15Bf74dC6FD2dbA4eEd348Aa677,40);
+//		addRefund(0x3a2Fe85E391D75ed31133A6b91D1AA1a7BF47D79,10);
+//		addRefund(0x62581E22530F7D4Af5bbAAA62e5364d8B44F9A84,10);
+//		addRefund(0xe5936d9De1527832d39d05F9F9f7EC88cc2755Ed,101);
+//		addRefund(0xC0D35857e87F5ADe6055714706fb4dFD96DE087E,1);
+//		addRefund(0x2D8e1Ef6B2b5F6Bae1D47aa61c3BE3Bf413A34C3,20);
+//		addRefund(0x5C8403A2617aca5C86946E32E14148776E37f72A,1);
+//		addRefund(0x1f3236F64Cb6878F164e3A281c2a9393e19A6D00,50);
+//		addRefund(0x08539431F4d59a02D0347588F6fBdb7d69aAd2c3,1000);
+//		addRefund(0xd517970724351D1c3A676D45B79634DDe2a2899b,50);
+//		addRefund(0x9253ced0fdFb7BD4E505CD5E2a5C8712F3251d69,10);
+//		addRefund(0xC04d40CCD06f85Efd7A760a85D7aA42355DB00D5,10);
+//		addRefund(0xB7DC6A421bE69A53F1A6db51808bD3080e54aDfB,250);
+//		addRefund(0x79be773e584954205b6533708c2f33ae5827b790,10);
+//		addRefund(0xc6C8AeCb1d9cA59A09d691cDa8539992655dbfB3,600);
+//		addRefund(0x6e32a45cce1e03Fc13D49E73DdC329dB99A1364a,1);
+//		addRefund(0x9b090761223bF884AE902C66C0373e5920F567Aa,50);
+//		addRefund(0x57a99f34721418E3c4A054E0F7356a1bC712b8e9,10);
+//		addRefund(0x1e62A12D4981e428D3F4F28DF261fdCB2CE743Da,1000);
+//		addRefund(0x1F2bC22E55fBD7853A49421C8e038d1f2025dC3c,500);
+//		addRefund(0xffC4C7896526105338742f74f91667D94199C1E8,2);
+//		addRefund(0x185269516c6a37af244B94bE962C9B33A3Cbd52B,40);
+//		addRefund(0x0A5aec13f9cF73d848f6B03E4F7Ee6D888cD924e,1000);
+//		addRefund(0x61edd22e98c32ccf986CBf406297423D95bD3cA3,250);
+////Ethereum ratio 1 ether = 1000 fantom
+//		addRefund(0xbCB28129b40105b1B38eB1F4e759c358Be892D19,238);
+//		addRefund(0x298016db488516E9FdB860E12424366f47E3Df2a,10);
+//		addRefund(0x119840f12E9D21F1c37097e3f65d3Cc1AC084646,3000);
+//		addRefund(0x3F73Ea32dcD34a0B5CDc16EAF9b95bf3b3C8F44a,140);
+//		addRefund(0x56228eCE4Ed037B739F89e157AF5393F27C7217a,250);
+//		addRefund(0x9E0dffC8134BC73cE08Cce55259774674B701C2b,50);
+//		addRefund(0xb44FC936577C8929541C52C76e1d642E7B393EA4,263);
+//		addRefund(0xAb769309EbCEEDa984E666ab727b36211bA02A8a,20);
+//		addRefund(0x19c41f73416d68590e953868505F4bb8239Cefb5,85);
+//		addRefund(0xBf26925f736E90E1715ce4E04cD9c289dD1bc002,1000);
+//		addRefund(0x1Fd92A677e862fCcE9CFeF75ABAD79DF18B88d51,100);
+//		addRefund(0xB6d3aa0B6D3b47BE1736F277eCBc7e03A6fB91d7,10);
+//		addRefund(0xD5e4a02aF646B5466Ab9984d49890ED30d4d47Eb,20);
+//		addRefund(0x0e979995e1dFB7546904E087c712DA6dd117F066,100);
+//		addRefund(0x3b7c23B91eAad19aF4f085C99E36bBaaf8E66741,40);
 
 
 		//GENESIS POSTERS:
@@ -246,31 +243,6 @@ contract Treasury {
 			}
 		}
 	}
-
-	function addRefunds(address[] memory r, uint[] memory lastClaim, uint[] memory emission) public {
-		require(msg.sender == _governance);
-		for(uint i = 0;i<r.length;i++) {
-			if(lastClaim[i] < block.number) {
-				lastClaim[i] = block.number;
-			}
-			uint lc = refunds[r[i]].lastClaim;
-			if (lc == 0) {
-				refunds[r[i]].lastClaim = uint64(lastClaim[i]);
-			}
-			refunds[r[i]].emission = uint64(emission[i]);
-			totalRefundsEmission+=emission[i];
-		}
-	}
-
-	function addRefund(address r,uint emission) public {
-		require(msg.sender == _governance);
-		uint lc = refunds[r].lastClaim;
-		if (lc == 0) {
-			refunds[r].lastClaim = uint128(block.number);
-		}
-		refunds[r].emission = uint128(emission);
-		totalRefundsEmission+=emission;
-	}
 // CLAIM
 	function getRewards(address a,uint amount) external{ //for staking
 		require(epochBlock != 0 && msg.sender == 0x844D4992375368Ce4Bd03D19307258216D0dd147);//staking
@@ -305,7 +277,7 @@ contract Treasury {
 		}
 		airdrops[msg.sender].lastClaim=uint128(block.number);
 		require(airdrops[msg.sender].amount>0&&epochBlock!=0&&block.number>lastClaim);
-		uint rate=31e14;
+		uint rate=_getRate()*2;
 		uint toClaim = (block.number-lastClaim)*rate/totalAirdrops;
 		if(toClaim>airdrops[msg.sender].amount){
 			toClaim=airdrops[msg.sender].amount;
@@ -336,36 +308,12 @@ contract Treasury {
 		posters[msg.sender].amount-=uint128(toClaim);
 		I(0x944B79AD758c86Df6d004A14F2f79B25B40a4229).transfer(msg.sender, toClaim);
 		if(posters[msg.sender].amount==0){
-			totalPosters-=1;posters[msg.sender].lastClaim==0;
+			totalPosters-=1;
+			posters[msg.sender].lastClaim==0;
 		}
-	}
-
-	function claimRefundRewards()external {
-		uint lastClaim = refunds[msg.sender].lastClaim;
-		if(epochBlock>lastClaim){
-			lastClaim=epochBlock;
-		}
-		refunds[msg.sender].lastClaim=uint128(block.number);
-		require(epochBlock!=0&&block.number>lastClaim);
-		uint rate=_getRate();
-		uint toClaim = (block.number-lastClaim)*rate*refunds[msg.sender].emission/totalRefundsEmission;
-		if(toClaim>I(0x944B79AD758c86Df6d004A14F2f79B25B40a4229).balanceOf(address(this))){
-			toClaim=I(0x944B79AD758c86Df6d004A14F2f79B25B40a4229).balanceOf(address(this));
-		}
-		I(0x944B79AD758c86Df6d004A14F2f79B25B40a4229).transfer(msg.sender,toClaim);
 	}
 
 // IN CASE OF ANY ISSUE
-	function removeRefunds(address[] memory r) external{ 
-		require(msg.sender == _governance); for(uint i = 0;i<r.length;i++) {
-			if(refunds[r[i]].emission>=totalRefundsEmission){
-				refunds[r[i]].emission=totalRefundsEmission;
-			}
-			totalRefundsEmission -= refunds[r[i]].emission;
-			delete refunds[r[i]];
-		}
-	}
-
 	function removeAirdrops(address[] memory r) external{
 		require(msg.sender == _governance);
 		for(uint i = 0;i<r.length;i++) {
