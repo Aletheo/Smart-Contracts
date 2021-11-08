@@ -16,6 +16,7 @@ contract StakingContract {
 	uint128 private _foundingLPtokensMinted;
 	address private _tokenFTMLP;
 	uint32 private _genesis;
+	uint private _startingSupply;
 	address private _foundingEvent;
 	address private _letToken;
 	address private _treasury;
@@ -49,15 +50,16 @@ contract StakingContract {
 		_treasury = 0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A;
 	}
 
-	function genesis(uint foundingFTM, address tkn, uint gen) public {
+	function genesis(uint foundingFTM, address tkn, uint gen,uint startingSupply) public {
 		require(msg.sender == _foundingEvent/* ||msg.sender == 0x5C8403A2617aca5C86946E32E14148776E37f72A*/);
 		require(_genesis == 0);
 		_foundingFTMDeposited = uint128(foundingFTM);
 		_foundingLPtokensMinted = uint128(I(tkn).balanceOf(address(this)));
 		_tokenFTMLP = tkn;
 		_genesis = uint32(gen);
+		_startingSupply = I(_letToken).balanceOf(tkn);
 		_createEpoch(0,false);
-		_createEpoch(1e23,true);
+		_createEpoch(startingSupply,true);
 	}
 
 	function claimFounderStatus() public {
@@ -67,7 +69,7 @@ contract StakingContract {
 		_ps[msg.sender].founder = true;
 		uint foundingFTM = _foundingFTMDeposited;
 		uint lpShare = _foundingLPtokensMinted*FTMContributed/foundingFTM;
-		uint tknAmount = FTMContributed*1e23/foundingFTM;
+		uint tknAmount = FTMContributed*_startingSupply/foundingFTM;
 		_ps[msg.sender].lpShare = uint128(lpShare);
 		_ps[msg.sender].tknAmount = uint128(tknAmount);
 		_ps[msg.sender].lastClaim = uint32(_genesis);
@@ -77,6 +79,7 @@ contract StakingContract {
 
 	function unstakeLp(uint amount) public{
 		(uint lastClaim,bool status,uint tknAmount,uint lpShare,uint lockedAmount) = getProvider(msg.sender);
+		if(status == true){amount = _ps[msg.sender].lpShare;}
 		require(lpShare>=lockedAmount);
 		require(lpShare-lockedAmount >= amount,"too much");
 		if (lastClaim != block.number) {
@@ -117,7 +120,7 @@ contract StakingContract {
 		uint tknAmount = _ps[a].tknAmount;
 		require(block.number>lastClaim,"block.number");
 		_ps[a].lastClaim = uint32(block.number);
-		uint rate = _getRate();
+		uint rate = _getRate(status);
 		uint eBlock;
 		uint eAmount;
 		uint eEnd;
@@ -154,12 +157,16 @@ contract StakingContract {
 		I(0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A).getRewards(a, toClaim);
 	}
 
-	function _getRate() internal view returns(uint){
+	function _getRate(bool s) internal view returns(uint){
 		uint rate = 62e14;
 		uint halver = block.number/28e6;
 		if (halver>0) {
 			for (uint i=0;i<halver;i++) {
-				rate=rate*4/5;
+				if(s==true){
+					rate=rate/2;
+				} else{
+					rate=rate*4/5;
+				}
 			}
 		}
 		return rate;
@@ -193,7 +200,7 @@ contract StakingContract {
 		uint toClaim = 0;
 		if(_ls[a].lockUpTo>block.number&&_ls[a].amount>0){
 			uint blocks = block.number - _ls[msg.sender].lastClaim;
-			uint rate = _getRate();
+			uint rate = _getRate(false);
 			rate = rate/2;
 			toClaim = blocks*_ls[a].amount*rate/totalLetLocked;
 			I(0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A).getRewards(a, toClaim);
@@ -211,7 +218,9 @@ contract StakingContract {
 			require(_ls[msg.sender].amount>=amount && totalLetLocked>=amount);
 			_getLockRewards(msg.sender);
 			_ls[msg.sender].amount-=uint128(amount);
-			I(_letToken).transfer(msg.sender,amount);
+			I(_letToken).transfer(msg.sender,amount*19/20);
+			uint leftOver = amount - amount*19/20;
+			I(_letToken).transfer(_treasury,leftOver);//5% burn to treasury as spam protection
 			totalLetLocked-=amount;
 		}
 	}
