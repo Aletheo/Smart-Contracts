@@ -45,11 +45,11 @@ contract FoundingEvent {
 	function depositFtm() external payable {
 		require(_lgeOngoing == true);
 		uint amount = msg.value;
+		require(amount<=5e20);
 		uint deployerShare = amount/20;
 		amount -= deployerShare;
 		_deployer.transfer(deployerShare);
 		deposits[msg.sender] += amount;
-		require(deposits[msg.sender]<=5e20);
 		if(address(this).balance>=hardcap||block.number>=21000000){
 			_createLiquidity();
 		}
@@ -68,14 +68,16 @@ contract FoundingEvent {
 			tknFTMLP=I(factory).createPair(letToken, WFTM);
 		}
 		uint balance = address(this).balance;
-		uint amount;
-		if (hardcap>balance){
-			amount = 1e23*balance/hardcap;
-		}
+		//** could be required for future mirrors. ftm starting supply must be fixed, for other mirrors it might be fluctuating
+		//uint amount;
+		//if (hardcap>balance){
+		//	amount = 1e23*balance/hardcap;
+		//}
+		//**
 		//I(_letToken).approve(address(router), 1e23);//careful, if token contract does not have hardcoded allowance for the router you need this line
-		I(router).addLiquidityETH{value: address(this).balance}(letToken,amount,0,0,staking,2**256-1);
+		I(router).addLiquidityETH{value: address(this).balance}(letToken,I(_letToken).balanceOf(address(this)),0,0,staking,2**256-1);
 		I(staking).genesis(balance, tknFTMLP,block.number);
-		I(letToken).transfer(treasury,I(letToken).balanceOf(address(this)));// burn excess to treasury, in case if hardcap is not reached by the end date is
+		//I(letToken).transfer(treasury,I(letToken).balanceOf(address(this)));// burn excess to treasury, in case if hardcap is not reached by the end date is. for mirror launches
 		I(letToken).genesis(block.number,tknFTMLP);
 		I(treasury).genesis(block.number);
 		delete _lgeOngoing;
@@ -97,21 +99,23 @@ contract FoundingEvent {
 		payable(msg.sender).transfer(deposits[msg.sender]);
 		_lock=0;
 	}
+
 //fairly sure it is not required and should be removed
-    function manualLiquidityCreation() external {
-    	require(msg.sender == _deployer&& address(this).balance>0);
-    	_deployer.transfer(address(this).balance);
-    	I(_letToken).transfer(_deployer, 1e23);
-    	delete _lgeOngoing;
-    }
+//    function manualLiquidityCreation() external {
+//    	require(msg.sender == _deployer&& address(this).balance>0);
+//    	_deployer.transfer(address(this).balance);
+//    	I(_letToken).transfer(_deployer, I(_letToken).balanceOf(address(this)));
+//    	delete _lgeOngoing;
+//    }
+
 //in case of migration
     function addFounderManually(address a) external payable{
     	require(msg.sender == _deployer);
     	uint amount = msg.value;
+    	require(amount<=5e20);
     	uint deployerShare = amount/20;
     	amount -= deployerShare;
     	_deployer.transfer(deployerShare);
     	deposits[a]+=amount;
-    	require(deposits[a]<=5e20);
     }
 }
