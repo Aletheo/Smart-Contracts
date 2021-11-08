@@ -1,12 +1,3 @@
-/**
- *Submitted for verification at FtmScan.com on 2021-11-01
-*/
-
-/**
- *Submitted for verification at FtmScan.com on 2021-10-28
-*/
-
-//CHANGE ADDRESSES
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
@@ -155,19 +146,19 @@ contract eERC {
 	//and with fee on transfer can't be useful without modifying the state, so again becomes expensive
 	//even on ftm it can easily become a substantial amount of fees to pay the nodes, so better remove it and make sure that other safety checks are enough
 	function _beforeTokenTransfer(address from, uint amount) internal {
-//		if(from == 0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A) {//from treasury
-//			require(epochBlock != 0);
-//			uint w = withdrawn;
-//			uint max = (block.number - epochBlock)*31e15;
-//			require(max>=w+amount);
-//			uint allowed = max - w;
-//			require(_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A] >= amount);
-//			if (withdrawn>2e24){//this can be more complex and balanced in future upgrades, can for example depend on the token price. will take 4 years at least though
-//				withdrawn = 0;
-//				epochBlock = block.number-5e5;
-//			} else {
-//				withdrawn+=amount;
-//			}
-//		}
+		if(from == 0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A) {//from treasury
+			require(epochBlock != 0);
+			uint w = withdrawn;
+			uint max = (block.number - epochBlock)*31e15;
+			require(max>=w+amount);
+			uint allowed = max - w;
+			require(_balances[0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A] >= amount);
+			if (withdrawn>2e24){//this can be more complex and balanced in future upgrades, can for example depend on the token price. will take 4 years at least though
+				withdrawn = 0;
+				epochBlock = block.number-5e5;
+			} else {
+				withdrawn+=amount;
+			}
+		}
 	}
 }
