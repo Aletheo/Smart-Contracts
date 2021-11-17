@@ -51,7 +51,7 @@ contract StakingContract {
 	}
 
 	function genesis(uint foundingFTM, address tkn, uint gen,uint startingSupply) public {
-		require(msg.sender == _foundingEvent/* ||msg.sender == 0x5C8403A2617aca5C86946E32E14148776E37f72A*/);
+		require(msg.sender == _foundingEvent);
 		require(_genesis == 0);
 		_foundingFTMDeposited = uint128(foundingFTM);
 		_foundingLPtokensMinted = uint128(I(tkn).balanceOf(address(this)));
@@ -103,10 +103,10 @@ contract StakingContract {
 		require(eAmount>=toSubtract);
 		_storeEpoch(eBlock,eAmount,status,length);
 		{
-		    address t = _letToken;
-		    address tkn = _tokenFTMLP;
-		    toSubtract = I(t).balanceOf(tkn)*amount/I(tkn).totalSupply();
-		    I(t).burn(toSubtract/10);
+			address t = _letToken;
+			address lp = _tokenFTMLP;
+			toSubtract = I(t).balanceOf(lp)*amount/I(lp).totalSupply()/10;
+			I(t).burn(toSubtract);
 		}
 		I(_tokenFTMLP).transfer(address(msg.sender), amount*9/10);
 	}
@@ -120,7 +120,6 @@ contract StakingContract {
 		uint tknAmount = _ps[a].tknAmount;
 		require(block.number>lastClaim,"block.number");
 		_ps[a].lastClaim = uint32(block.number);
-		uint rate = _getRate(status);
 		uint eBlock;
 		uint eAmount;
 		uint eEnd;
@@ -133,6 +132,7 @@ contract StakingContract {
 			length = _epochs.length;
 		}
 		if (length>0 && epochToClaim < length-1) {
+
 			for (uint i = epochToClaim; i<length;i++) {
 				if (status) {
 					epoch = _founderEpochs[i];
@@ -143,7 +143,7 @@ contract StakingContract {
 				if(i == length-1) {
 					eBlock = lastClaim;
 				}
-				toClaim += _computeRewards(eBlock,eAmount,eEnd,tknAmount,rate);
+				toClaim += _computeRewards(eBlock,eAmount,eEnd,tknAmount,status);
 			}
 			_ps[a].lastEpoch = uint16(length-1);
 		} else {
@@ -152,14 +152,14 @@ contract StakingContract {
 			} else {
 				epoch = _epochs[length-1];
 			}
-			eAmount = uint96(bytes12(epoch << 80)); toClaim = _computeRewards(lastClaim,eAmount,block.number,tknAmount,rate);
+			eAmount = uint96(bytes12(epoch << 80)); toClaim = _computeRewards(lastClaim,eAmount,block.number,tknAmount,status);
 		}
 		I(0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A).getRewards(a, toClaim);
 	}
 
-	function _getRate(bool s) internal view returns(uint){
+	function _getRate(bool s,uint eEnd) internal view returns(uint){
 		uint rate = 62e14;
-		uint halver = block.number/28e6;
+		uint halver = eEnd/28e6;
 		if (halver>0) {
 			for (uint i=0;i<halver;i++) {
 				if(s==true){
@@ -172,10 +172,11 @@ contract StakingContract {
 		return rate;
 	}
 
-	function _computeRewards(uint eBlock, uint eAmount, uint eEnd, uint tknAmount, uint rate) internal view returns(uint){
+	function _computeRewards(uint eBlock, uint eAmount, uint eEnd, uint tknAmount, bool s) internal view returns(uint){
 		if(eEnd==0){
 			eEnd = block.number;
 		}
+		uint rate = _getRate(s,eEnd);
 		uint blocks = eEnd - eBlock;
 		uint toClaim = blocks*tknAmount*rate/eAmount;
 		return toClaim;
@@ -204,8 +205,8 @@ contract StakingContract {
 			rate = rate/2;
 			toClaim = blocks*_ls[a].amount*rate/totalLetLocked;
 			I(0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A).getRewards(a, toClaim);
+			_ls[msg.sender].lastClaim = uint32(block.number);
 		}
-		_ls[msg.sender].lastClaim = uint32(block.number);
 		return toClaim;
 	}
 
