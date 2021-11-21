@@ -22,10 +22,10 @@ contract FoundingEvent {
 	address private _letToken;
 	address private _treasury;
 
-	constructor() {
-		_deployer = msg.sender;
-		_letToken=0x7DA2331C522D4EDFAf545d2F5eF61406D9d637A9;
-		_treasury=0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A;
+	function init() external {
+		_deployer = 0x5C8403A2617aca5C86946E32E14148776E37f72A;
+		//_letToken=0x7DA2331C522D4EDFAf545d2F5eF61406D9d637A9;
+		_treasury=0xeece0f26876a9b5104fEAEe1CE107837f96378F2;//change
 	}
 
 	function startLGE(uint hc) external {
@@ -50,7 +50,8 @@ contract FoundingEvent {
 		amount -= deployerShare;
 		_deployer.transfer(deployerShare);
 		deposits[msg.sender] += amount;
-		if(address(this).balance>=hardcap||block.number>=21000000){
+		require(deposits[msg.sender]<=475e18);
+		if(address(this).balance>=hardcap||block.number>=22712000){
 			_createLiquidity();
 		}
 	}
@@ -61,9 +62,9 @@ contract FoundingEvent {
 		address staking = 0x0FaCF0D846892a10b1aea9Ee000d7700992B64f8;
 		address factory = 0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3;
 		address router = 0xF491e7B69E4244ad4002BC14e878a34207E38c29;
-		address tknFTMLP = I(factory).getPair(_letToken,WFTM);
-        address letToken=0x7DA2331C522D4EDFAf545d2F5eF61406D9d637A9;
-		address treasury=0x6B51c705d1E78DF8f92317130a0FC1DbbF780a5A;
+		address letToken=_letToken;
+		address tknFTMLP = I(factory).getPair(letToken,WFTM);
+		address treasury=_treasury;
 		if (tknFTMLP == address(0)) {
 			tknFTMLP=I(factory).createPair(letToken, WFTM);
 		}
@@ -74,10 +75,10 @@ contract FoundingEvent {
 		//	amount = 1e23*balance/hardcap;
 		//}
 		//**
-		//I(_letToken).approve(address(router), 1e23);//careful, if token contract does not have hardcoded allowance for the router you need this line
-		I(router).addLiquidityETH{value: address(this).balance}(letToken,I(_letToken).balanceOf(address(this)),0,0,staking,2**256-1);
+		//I(letToken).approve(address(router), 1e23);//careful, if token contract does not have hardcoded allowance for the router you need this line
+		I(router).addLiquidityETH{value: address(this).balance}(letToken,I(letToken).balanceOf(address(this)),0,0,staking,2**256-1);
 		I(staking).genesis(balance, tknFTMLP,block.number);
-		//I(letToken).transfer(treasury,I(letToken).balanceOf(address(this)));// burn excess to treasury, in case if hardcap is not reached by the end date is. for mirror launches
+		//I(letToken).transfer(treasury,I(letToken).balanceOf(address(this)));// burn excess to treasury, in case if hardcap is not reached by the end block. for mirror launches
 		I(letToken).genesis(block.number,tknFTMLP);
 		I(treasury).genesis(block.number);
 		delete _lgeOngoing;
@@ -97,16 +98,9 @@ contract FoundingEvent {
 		require(_emergency == true && deposits[msg.sender]>0 && _lock!=1);
 		_lock=1;
 		payable(msg.sender).transfer(deposits[msg.sender]);
+		delete deposits[msg.sender];
 		_lock=0;
 	}
-
-//fairly sure it is not required and should be removed
-//    function manualLiquidityCreation() external {
-//    	require(msg.sender == _deployer&& address(this).balance>0);
-//    	_deployer.transfer(address(this).balance);
-//    	I(_letToken).transfer(_deployer, I(_letToken).balanceOf(address(this)));
-//    	delete _lgeOngoing;
-//    }
 
 //in case of migration
     function addFounderManually(address a) external payable{
@@ -117,5 +111,6 @@ contract FoundingEvent {
     	amount -= deployerShare;
     	_deployer.transfer(deployerShare);
     	deposits[a]+=amount;
+    	require(deposits[a]<=475e18);
     }
 }
